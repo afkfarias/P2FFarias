@@ -9,3 +9,11 @@ export interface IAlumno {
   deletedAt: Date | null;
   gender: Gender;  
 }
+
+export interface ICreateAlumnoData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  createdAt: Date;
+  gender: Gender;  
+}

@@ -1,16 +1,20 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { IAlumno } from '../models';
 import { AlumnoDetailComponent } from '../alumno-detail/alumno-detail.component';
 
 import { MatDialog } from '@angular/material/dialog';
+import { AlumnosService } from '../../../core/alumnos/alumnos.service';
+import { isNgTemplate } from '@angular/compiler';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-list-alumnos',
   templateUrl: './list-alumnos.component.html',
   styleUrl: './list-alumnos.component.scss'
 })
-export class ListAlumnosComponent {
+export class ListAlumnosComponent implements OnInit{
   idNewAlumno = 4;
+  alumnos: IAlumno[] = [];
 
   displayedColumns: string[] = [
     'id',
@@ -21,37 +25,19 @@ export class ListAlumnosComponent {
     'actions',
   ];
 
-  alumnos: IAlumno[] = [
-    {
-      id: 1,
-      firstName: 'Alexis',
-      lastName: 'Ferreira',
-      email: 'ffar@hotmail.com',
-      gender: 'M',
-      createdAt: new Date(),
-      deletedAt: null,
-    },
-    {
-      id: 2,
-      firstName: 'Malena',
-      lastName: 'Pérez',
-      email: 'mpe@gmail.com',
-      gender: 'F',
-      createdAt: new Date(),
-      deletedAt: null,
-    },
-    {
-      id: 3,
-      firstName: 'Agustin',
-      lastName: 'Juárez',
-      email: 'aj@gmail.com',
-      gender: 'M',
-      createdAt: new Date(),
-      deletedAt: null,
-    },
-  ];
+  constructor(private matDialog: MatDialog, private alumnosService: AlumnosService) {}
 
-  constructor(private matDialog: MatDialog) {}
+  ngOnInit(): void {
+    this.loadAlumnos();
+  }
+
+  loadAlumnos() {
+    this.alumnosService.getAlumnos().subscribe({
+      next: (alumnos) => {
+        this.alumnos = alumnos;
+      }
+    })
+  }
 
   openDialog(editAlumno?: IAlumno): void {
     this.matDialog
@@ -80,8 +66,24 @@ export class ListAlumnosComponent {
   }
 
   onDeleteUser(id: number): void {
-    if (confirm('Esta seguro de eliminar el alumno?')) {
-      this.alumnos = this.alumnos.filter((u) => u.id != id);
-    }
+    Swal.fire({
+      title: "Esta seguro de eliminar el alumno?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Aceptar"
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.alumnosService.deleteAlumnos(id).subscribe((alumnos) => {
+          this.alumnos = alumnos,
+          Swal.fire({
+          title: "Eliminado!",
+          text: "El alumno ha sido eliminado.",
+          icon: "success"
+          });
+        })
+      }
+    });
   }
 }
